@@ -1,5 +1,7 @@
 ﻿using AppContas.Web.Response;
+using AppContas.Web.Responses;
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
 
 namespace AppContas.Web.Services
@@ -11,12 +13,15 @@ namespace AppContas.Web.Services
     {
         //atributos
         private readonly ILocalStorageService _localStorageService;
+        private readonly NavigationManager _navigationManager;
+
         private const string _key = "appcontas-auth";
 
         //Método para injeção de dependência
-        public AuthService(ILocalStorageService localStorageService)
+        public AuthService(ILocalStorageService localStorageService, NavigationManager navigationManager)
         {
             _localStorageService = localStorageService;
+            _navigationManager = navigationManager;
         }
 
         /// <summary>
@@ -50,6 +55,25 @@ namespace AppContas.Web.Services
         public async Task SignOut()
         {
             await _localStorageService.RemoveItemAsync(_key);
+        }
+
+        /// <summary>
+        /// Método para verificar se o usuário está autenticado
+        /// E caso não esteja, redireciona-lo de volta para a página inicial do sistema
+        /// </summary>
+        public async Task Authorize(bool isAuthenticated)
+        {
+            var isSigningIn = await IsSigningIn();
+
+            //O Usuário não está autenticado em uma página
+            //em que ele precisa de autenticação
+            if (!isSigningIn && isAuthenticated)
+                _navigationManager.NavigateTo("/");
+
+            //O Usuário está autenticado em uma página
+            //em que ele não precisa de autenticação
+            else if (isSigningIn && !isAuthenticated)
+                _navigationManager.NavigateTo("/admin/dashboard");
         }
     }
 }

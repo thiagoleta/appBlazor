@@ -1,8 +1,11 @@
 ﻿@** Define a rota do componente *@
 @page "/criar-usuario"
 
+@using AppContas.Web.Services
+
 @** Injeções de dependência *@
 @inject HttpClient Http
+@inject AuthService Auth
 
 <div class="row">
     <div class="col-md-6 offset-md-3">
@@ -18,7 +21,7 @@
                     <Loading IsLoading="isLoading">
                         <strong class="text-success">@mensagemSucesso</strong>
                         <strong class="text-danger">@mensagemErro</strong>
-                    </Loading>                    
+                    </Loading>
                 </div>
 
                 @** Componente para criação de formulários *@
@@ -92,6 +95,11 @@
     //carregamento (flag)
     private bool isLoading;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.Authorize(false);
+    }
+
     //método para capturar o evento de submit do formulário
     protected async Task OnSubmit()
     {
@@ -107,7 +115,7 @@
         var content = await response.Content.ReadFromJsonAsync<CriarUsuarioResponse>();
 
         //verificando a resposta obtida
-        if(response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
         {
             mensagemSucesso = content.Mensagem;
             request = new CriarUsuarioRequest(); //limpando os campos do formulário
